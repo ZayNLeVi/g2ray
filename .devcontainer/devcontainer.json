@@ -1,7 +1,7 @@
 {
-  "name": "ghtun",
+  "name": "quiet-edge-325ff4",
   "build": {
-    "dockerfile": "./Dockerfile",
+    "dockerfile": "Dockerfile",
     "context": "."
   },
   "features": {
@@ -10,29 +10,19 @@
     },
     "ghcr.io/devcontainers/features/github-cli:1": {
       "version": "latest"
-    },
-    "ghcr.io/devcontainers/features/sshd:1": {
-      "version": "latest"
     }
   },
-
-  "postStartCommand": "chmod +x /workspaces/g2ray/watch.sh /workspaces/g2ray/start_services.sh /workspaces/g2ray/usage-agent.sh /workspaces/g2ray/install-traffic-agent.sh",
-
-  "postAttachCommand": {
-    "public": "gh codespace ports visibility 443:public -c ${CODESPACE_NAME:-$(hostname)} || true",
-    "xray": "pkill -f '/usr/local/bin/xray' 2>/dev/null || true; nohup sudo /usr/local/bin/xray -c /etc/config.json > /tmp/xray.out 2>&1 &",
-    "watchdog": "pkill -f '/workspaces/g2ray/watch.sh' 2>/dev/null || true; nohup /workspaces/g2ray/watch.sh > /tmp/watchdog.out 2>&1 &",
-    "traffic": "TRAFFIC_API_URL='http://141.11.18.186:3010/api/traffic/push' TRAFFIC_TOKEN='change_me_traffic_token' TRAFFIC_INTERVAL=10 XRAY_INBOUND_TAG='vless-in' /workspaces/g2ray/install-traffic-agent.sh"
-  },
-
+  "postAttachCommand": "gh codespace ports visibility 443:public -c $CODESPACE_NAME && bash /usr/local/bin/start.sh",
   "portsAttributes": {
     "443": {
-      "label": "xray",
+      "label": "quiet-edge-325ff4",
       "protocol": "http",
       "onAutoForward": "silent"
     }
   },
-  "forwardPorts": [443],
+  "forwardPorts": [
+    443
+  ],
   "hostRequirements": {
     "cpus": 2
   }
