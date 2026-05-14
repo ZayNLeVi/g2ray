@@ -1,75 +1,114 @@
 {
-  "stats": {},
-
-  "api": {
-    "tag": "api",
-    "services": ["StatsService"]
+  "log": {
+    "loglevel": "warning",
+    "access": "none",
+    "error": "/tmp/xray-error.log"
   },
-
-  "policy": {
-    "levels": {
-      "0": {
-        "statsUserUplink": true,
-        "statsUserDownlink": true
-      }
-    },
-    "system": {
-      "statsInboundUplink": true,
-      "statsInboundDownlink": true
-    }
+  "dns": {
+    "servers": [
+      {
+        "address": "https://1.1.1.1/dns-query",
+        "domains": [
+          "geosite:geolocation-!cn"
+        ],
+        "queryStrategy": "UseIP"
+      },
+      "8.8.8.8",
+      "localhost"
+    ],
+    "queryStrategy": "UseIPv4"
   },
-
   "inbounds": [
-    {
-      "tag": "api-in",
-      "listen": "127.0.0.1",
-      "port": 10085,
-      "protocol": "dokodemo-door",
-      "settings": {
-        "address": "127.0.0.1"
-      }
-    },
     {
       "tag": "vless-in",
       "port": 443,
+      "listen": "0.0.0.0",
       "protocol": "vless",
       "settings": {
         "clients": [
           {
-            "id": "550e8400-e29b-41d4-a716-446655440000",
-            "email": "workspace",
-            "level": 0
+            "id": "1471717f-78ee-4cfb-b757-26f1e145e65f",
+            "flow": "",
+            "level": 0,
+            "email": "user@quiet-edge-325ff4"
           }
         ],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "xhttp",
+        "security": "none",
         "xhttpSettings": {
           "mode": "packet-up",
-          "path": "/"
+          "path": "/",
+          "maxUploadSize": 1000000,
+          "maxConcurrentUploads": 10
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ],
+        "routeOnly": false
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIPv4"
+      }
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
         }
       }
     }
   ],
-
-  "outbounds": [
-    {
-      "protocol": "freedom"
-    },
-    {
-      "tag": "api",
-      "protocol": "freedom"
-    }
-  ],
-
   "routing": {
+    "domainStrategy": "IPIfNonMatch",
     "rules": [
       {
         "type": "field",
-        "inboundTag": ["api-in"],
-        "outboundTag": "api"
+        "ip": [
+          "geoip:private"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "protocol": [
+          "bittorrent"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:category-ads-all"
+        ],
+        "outboundTag": "block"
       }
     ]
+  },
+  "policy": {
+    "levels": {
+      "0": {
+        "handshake": 4,
+        "connIdle": 300,
+        "uplinkOnly": 2,
+        "downlinkOnly": 5,
+        "bufferSize": 512
+      }
+    }
   }
 }
